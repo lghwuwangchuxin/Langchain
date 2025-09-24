@@ -261,7 +261,7 @@ use_hub_prompt = False                                # 是否使用Hub模板
 ## 部署和运行
 
 ### 环境要求
-- Python 3.8+
+- Python 3.1.3+
 - Ollama服务（运行在11434端口）
 - Milvus数据库（运行在19530端口）
 
