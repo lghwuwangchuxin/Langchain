@@ -23,7 +23,8 @@ from models.model_manager import ModelManager
 from vectorstore.milvus_manager import MilvusManager
 # noinspection PyUnresolvedReferences
 from documents.document_processor import DocumentProcessor
-
+# noinspection PyUnresolvedReferences
+from monitoring.monitoring_langfuse import RAGMonitor
 
 class RAGSystem:
     """RAG系统主类"""
@@ -36,6 +37,7 @@ class RAGSystem:
         self.document_processor = DocumentProcessor(self.logger, self.config_manager)
         self.vector_store = None
         self.rag_chain = None
+        self.rag_monitor = RAGMonitor(self.logger, self.config_manager)
 
     def initialize_system(self) -> bool:
         """初始化RAG系统"""
@@ -117,6 +119,8 @@ class RAGSystem:
             return
 
         self.logger.log_message("欢迎使用AI助手！输入 'exit' 退出程序。")
+        session_id = "session_" + str(hash(str(id(self))))  # 生成会话ID
+
         while True:
             try:
                 user_input = input("\n问题：").strip()
@@ -131,8 +135,13 @@ class RAGSystem:
 
                 self.logger.log_message(f"正在处理用户问题: {user_input}")
 
-                # 执行问答
-                response = self.rag_chain.invoke(user_input)
+                # 使用监控器执行问答
+                response = self.rag_monitor.monitor_rag_chain(
+                    self.rag_chain,
+                    user_input,
+                    session_id=session_id
+                )
+
                 print("AI助手：", response)
                 print("-" * 50)
 
