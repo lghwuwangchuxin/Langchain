@@ -3,7 +3,13 @@
 import os
 from typing import List, Any
 from langchain_community.document_loaders import TextLoader, PyPDFLoader, DirectoryLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+# 引入多种文本分割器
+from langchain_text_splitters import (
+    RecursiveCharacterTextSplitter,
+    PythonCodeTextSplitter,
+    MarkdownHeaderTextSplitter,
+    RecursiveJsonSplitter
+)
 # noinspection PyUnresolvedReferences
 from config.config_manager import ConfigManager
 # noinspection PyUnresolvedReferences
@@ -86,6 +92,35 @@ class DocumentProcessor:
             self.logger.log_message(f"加载文档失败: {e}", "ERROR")
             return []  # 返回空列表而不是抛出异常
 
+    def _create_text_splitter(self):
+        """根据配置创建相应的文本分割器"""
+        splitter_type = self.doc_config.get("text_splitter", "recursive_character")
+
+        self.logger.log_message(f"使用 {splitter_type} 分割器进行文档分割")
+
+        if splitter_type == "markdown":
+            return MarkdownHeaderTextSplitter(
+                headers_to_split_on=[
+                    ("#", "Header 1"),
+                    ("##", "Header 2"),
+                    ("###", "Header 3"),
+                ]
+            )
+        elif splitter_type == "python_code":
+            return PythonCodeTextSplitter(
+                chunk_size=self.CHUNK_SIZE,
+                chunk_overlap=self.CHUNK_OVERLAP
+            )
+        elif splitter_type == "json":
+            # JSON分割器需要特殊处理
+            return RecursiveJsonSplitter(max_chunk_size=self.CHUNK_SIZE)
+        else:  # 默认使用递归字符分割器
+            return RecursiveCharacterTextSplitter(
+                chunk_size=self.CHUNK_SIZE,
+                chunk_overlap=self.CHUNK_OVERLAP,
+                length_function=len
+            )
+
     def split_documents(self, documents: List[Any]) -> List[Any]:
         """分割文档"""
         try:
@@ -94,12 +129,14 @@ class DocumentProcessor:
                 self.logger.log_message("没有文档可供分割", "WARNING")
                 return []
 
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=self.CHUNK_SIZE,
-                chunk_overlap=self.CHUNK_OVERLAP,
-                length_function=len
-            )
-            splits = text_splitter.split_documents(documents)
+            # 根据配置创建文本分割器
+            text_splitter = self._create_text_splitter()
+
+            # 特殊处理JSON分割器
+            if isinstance(text_splitter, RecursiveJsonSplitter):
+                splits = text_splitter.split_documents(documents)
+            else:
+                splits = text_splitter.split_documents(documents)
 
             if not splits:
                 self.logger.log_message("警告: 文档分割后未生成任何节点", "WARNING")

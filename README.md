@@ -143,7 +143,53 @@ class MilvusManager:
 - 智能文本分割
 - 批量文档处理
 - 文档内容预览
+我将为 [README.md](file:///Users/liuguanghu/PythonPorject/Langchain/README.md) 添加文档分割器的说明内容。以下是建议添加的部分：
 
+## 文档分割器说明
+
+### 支持的分割器类型
+
+系统支持多种文档分割器，可根据文档类型和需求在配置文件中选择：
+
+1. **递归字符分割器 (`recursive_character`)**
+   - 默认分割器，适用于大多数文本格式
+   - 按字符递归分割，保持语义完整性
+   - 支持重叠块以保持上下文连续性
+
+2. **Markdown标题分割器 (`markdown`)**
+   - 专为Markdown格式设计
+   - 基于标题层级进行智能分割
+   - 保留标题结构信息
+
+3. **Python代码分割器 (`python_code`)**
+   - 针对Python源代码优化
+   - 按函数、类等代码结构分割
+   - 保持代码块完整性
+
+4. **JSON分割器 (`json`)**
+   - 专门处理JSON格式数据
+   - 按JSON结构智能分割
+   - 保持数据结构完整性
+
+### 配置方式
+
+在 [config/config.ini](file:///Users/liuguanghu/PythonPorject/Langchain/config/config.ini) 的 `[document]` 段中配置分割器类型：
+
+```ini
+[document]
+# ... 其他配置项 ...
+text_splitter = recursive_character  # 可选值: recursive_character, markdown, python_code, json
+```
+
+
+### 分割参数配置
+
+所有分割器共享以下参数配置：
+
+- [CHUNK_SIZE](file:///Users/liuguanghu/PythonPorject/Langchain/src/documents/document_processor.py#L22-L22): 每个文档块的最大字符数（默认500）
+- [CHUNK_OVERLAP](file:///Users/liuguanghu/PythonPorject/Langchain/src/documents/document_processor.py#L23-L23): 相邻块之间的重叠字符数（默认20）
+
+这些参数在 [document_processor.py](file:///Users/liuguanghu/PythonPorject/Langchain/src/documents/document_processor.py) 的 [DocumentProcessor](file:///Users/liuguanghu/PythonPorject/Langchain/src/documents/document_processor.py#L18-L154) 类中定义为常量，可根据需要调整。
 **核心类：**
 ```python
 class DocumentProcessor:

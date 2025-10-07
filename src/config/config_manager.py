@@ -53,11 +53,14 @@ class ConfigManager:
             directory_path = self.config.get("document", "directory_path", fallback=None)
             file_glob = self.config.get("document", "file_glob", fallback="*")
             exclude_pattern = self.config.get("document", "exclude_pattern", fallback=None)
+            # 获取分割器类型配置，默认为 recursive_character
+            text_splitter = self.config.get("document", "text_splitter", fallback="recursive_character")
             self._document_config = {
                 "file_paths": paths,
                 "directory_path": directory_path,
                 "file_glob": file_glob,
-                "exclude_pattern": exclude_pattern
+                "exclude_pattern": exclude_pattern,
+                "text_splitter": text_splitter
             }
         return self._document_config
 
